@@ -22,15 +22,7 @@ fed_dict = {
 }
 color_list = ["orange", "green", "blue", "pink", "grey", "red", "cyan"]
 
-MD = {
-        'PFL-DA':"o",
-        'Ditto': "v",
-        'TP': "s",
-        'FedAverage': "*",
-        'Simple DA':"p",
-        'Pfedme':"1",
-        'indiv':"+",
-}
+MD = ["o", "v", "s", "*","p","1","+",]
 
 class SineData(Dataset):
     """
@@ -365,13 +357,13 @@ def one_experinemt(args):
 
         x_train, y_train = dataset[2 * index]
         
-        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], marker=MD.values()[index])
+        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index])
         x_train, y_train = dataset[2 * index + 1]
         if index == 0:
             axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7,
-                     label='Ground Truth',marker=MD.values()[index])
+                     label='Ground Truth')
         else:
-            axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7,marker=MD.values()[index])
+            axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7)
 
 
     plt.xlabel('X', fontsize=20)
