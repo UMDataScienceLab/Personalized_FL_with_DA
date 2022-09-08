@@ -22,6 +22,15 @@ fed_dict = {
 }
 color_list = ["orange", "green", "blue", "pink", "grey", "red", "cyan"]
 
+MD = {
+        'PFL-DA':"o",
+        'Ditto': "v",
+        'TP': "s",
+        'FedAverage': "*",
+        'Simple DA':"p",
+        'Pfedme':"1",
+        'indiv':"+",
+}
 
 class SineData(Dataset):
     """
@@ -188,22 +197,16 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
                     feature = clientencoder[i](x)
                 else:
                     feature = encoders[i](x)
-                ci = feature.mean(dim=0)
+                #ci = feature.mean(dim=0)
                 y_pred = clientdecoder[i](feature)             
-                '''
-                clloss = nn.MSELoss()(centers.mean(dim=0), ci)
-                if args['fed'] in {'PDA'}:
-                    factor = 0.01
-                else:
-                    factor = 0
-                '''
+
                 
 
                 loss = nn.MSELoss()(y_pred, y) #+ factor * clloss  
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item() * len(x)
-                epoch_clloss += clloss.item()
+                #epoch_clloss += clloss.item()
                 
                 steps += 1
                 closs = torch.zeros(1)
@@ -262,9 +265,7 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
 
     
         end_time = time.time()
-        print("Epoch: {}, Avg_loss: {}, clloss: {}, dis loss: {}, time {}".format(epoch, (
-            epoch_loss) / len(dataset), epoch_clloss / len(dataset), closs.item(),
-                                                                                  end_time - start_time))
+        print("Epoch: {}, Avg_loss: {},  time {}".format(epoch, (epoch_loss) / len(dataset),  end_time - start_time))
         epoch_loss_history.append(epoch_loss / len(dataset))
         trainl = test_loss(dataset, encoder, encoders, decoder, decoders, n_task, device, args, test=0)
         tl = test_loss(dataset, encoder, encoders, decoder, decoders, n_task, device, args, test=1)
@@ -364,13 +365,13 @@ def one_experinemt(args):
 
         x_train, y_train = dataset[2 * index]
         
-        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index])
+        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], marker=MD.values()[index])
         x_train, y_train = dataset[2 * index + 1]
         if index == 0:
             axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7,
-                     label='Ground Truth')
+                     label='Ground Truth',marker=MD.values()[index])
         else:
-            axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7)
+            axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7,marker=MD.values()[index])
 
 
     plt.xlabel('X', fontsize=20)
@@ -404,7 +405,7 @@ if __name__ == "__main__":
     parser.add_argument('--fed', type=str, default="PDA")
     parser.add_argument('--space', type=str, default="nn")
     parser.add_argument('--seed', type=int, default=125)
-    parser.add_argument('--num_epochs', type=int, default=100)
+    parser.add_argument('--num_epochs', type=int, default=50)
     parser.add_argument('--rich_client_id', type=int, default=10)
     
     args = vars(parser.parse_args())
