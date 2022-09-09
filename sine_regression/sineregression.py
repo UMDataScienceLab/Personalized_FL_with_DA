@@ -357,7 +357,7 @@ def one_experinemt(args):
 
         x_train, y_train = dataset[2 * index]
         
-        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index])
+        axs.scatter(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, marker=MD[index],color=color_list[index])
         x_train, y_train = dataset[2 * index + 1]
         if index == 0:
             axs.plot(x_train.cpu().numpy(), y_train.cpu().numpy() * scale, color=color_list[index], alpha=0.7,
@@ -380,9 +380,9 @@ def one_experinemt(args):
                 phi = encoders[index](x_target)
                 y_pred = decoderfunctions[index](phi)
             if index == 0:
-                axs.scatter(phi.cpu().numpy(), y_pred.cpu().numpy(), color=color_list[index], alpha=0.7)
+                axs.scatter(phi.cpu().numpy(), y_pred.cpu().numpy(), marker=MD[index], color=color_list[index], alpha=0.7)
             else:
-                axs.scatter(phi.cpu().numpy(), y_pred.cpu().numpy(), color=color_list[index], alpha=0.7)
+                axs.scatter(phi.cpu().numpy(), y_pred.cpu().numpy(), marker=MD[index], color=color_list[index], alpha=0.7)
         plt.xlabel(r'$\Phi(x)$', fontsize=20)
         plt.ylabel('y', fontsize=20)
         # plt.legend(fontsize=20)
