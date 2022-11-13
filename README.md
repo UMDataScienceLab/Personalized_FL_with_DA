@@ -13,7 +13,7 @@ The fed argument specifies which algorithm to use, three options are 'PDA', 'dit
 All results will be generated to sine_outputs folder
 
 ## 2. Case study on image classification
-case_study folder contains all the code needed for reproducing results in section 4.2. Some classes are inherited from the (Domainbed repository)[https://github.com/facebookresearch/DomainBed].
+case_study folder contains all the code needed for reproducing results in section 4.2. Some classes are inherited from the [Domainbed repository](https://github.com/facebookresearch/DomainBed).
 
 
 ## 3. 3D printing
