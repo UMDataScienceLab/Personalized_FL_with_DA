@@ -122,7 +122,6 @@ class FedAverage(ERM):
         objective = 0.
         penalty = 0
         nmb = len(loaders)
-        self.env_feature_centers = [None for i in range(nmb)]
         
         totlen = 0.
         client_len_list = [0 for i in range(nmb)]
@@ -632,13 +631,16 @@ class Pfedme(ERM):
         features = self.featurizer(x) 
         return self.classifier((features))
 
-class PFLDA(FeatureNormalize):
+class PFLDA(ERM):
     def __init__(self, input_shape, num_classes, num_domains, hparams, gaussian=True):
-        super(PFLDA, self).__init__(input_shape, num_classes, num_domains, hparams, gaussian)
+        super(PFLDA, self).__init__(input_shape, num_classes, num_domains, hparams)
 
         self.global_featurizer = networks.Featurizer(input_shape, self.hparams)
         self.featurizers = nn.ModuleList([copy.deepcopy(self.global_featurizer) for i in range(hparams['num_client'])])
-
+        self.classifier = networks.Classifier(
+            self.featurizer.n_outputs,
+            num_classes,
+            self.hparams['nonlinear_classifier'], hparams)
         self.local_classifiers = nn.ModuleList([copy.deepcopy(self.classifier) for i in range(hparams['num_client']) ])
 
         self.local_decay  =1-1e-2
@@ -657,6 +659,8 @@ class PFLDA(FeatureNormalize):
         totlen = 0.
         client_len_list = [0 for i in range(nmb)]
         n_envi = len(loaders)
+        self.classifier_copy = []
+        self.featurizer_copy = []
         for cid, dataloader in enumerate(loaders):
             #print('client {} started training'.format(cid))
             i = dataloader.index
@@ -695,7 +699,8 @@ class PFLDA(FeatureNormalize):
                     #optimizer_l.zero_grad()
                     xi, yi = data[0].to(device), data[1].to(device)
                     with torch.no_grad():
-                        featuresi = self.global_featurizer(xi)
+                        featuresi = self.featurizers[i](xi)
+                        #featuresi = self.global_featurizer(xi)
                     yi_l = self.local_classifiers[i](featuresi)
                     loss1 = F.cross_entropy(yi_l, targetsi)
                     loss1.backward()
