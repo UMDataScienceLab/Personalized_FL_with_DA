@@ -24,7 +24,7 @@ from libs.fast_data_loader import InfiniteDataLoader, FastDataLoader
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Domain generalization')
-    parser.add_argument('--data_dir', type=str, default="../data")
+    parser.add_argument('--data_dir', type=str, default="../../../data")
     parser.add_argument('--dataset', type=str, default="RotatedMNIST")
     parser.add_argument('--algorithm', type=str, default="ERM")
     parser.add_argument('--serial', type=str, default="D")
@@ -328,6 +328,3 @@ if __name__ == "__main__":
     with open(os.path.join(output_dir, 'done'), 'w') as f:
         f.write('done')
     
-    if 'printingdata' in hparams.keys():
-        from process import plot_printer_data
-        plot_printer_data(output_dir, algorithm)

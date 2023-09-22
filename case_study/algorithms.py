@@ -269,7 +269,7 @@ class CompletelyIndividual(ERM):
         if "local_updates" in hparams.keys():
             self.local_updates = hparams["local_updates"]
         else:
-            self.local_updates= 10
+            self.local_updates = 10
     def update(self, loaders, device='cuda', unlabeled=None, fedavg=True, id_up=0):
         objective = 0.
         nmb = len(loaders)
@@ -647,6 +647,8 @@ class PFLDA(ERM):
         self.lr_decay = 0.99
         if "local_updates" in hparams.keys():
             self.local_updates = hparams["local_updates"]
+        else:
+            self.local_updates = 10
 
         self.featurizer_copy = []
 
@@ -699,8 +701,11 @@ class PFLDA(ERM):
                     #optimizer_l.zero_grad()
                     xi, yi = data[0].to(device), data[1].to(device)
                     with torch.no_grad():
-                        featuresi = self.featurizers[i](xi)
-                        #featuresi = self.global_featurizer(xi)
+                        if 'weighting_factor' in self.hparams:
+                            featuresi = (1 - self.hparams['weighting_factor'])*self.featurizers[i](xi) + self.hparams['weighting_factor']*self.global_featurizer(xi)
+                            #featuresi = self.global_featurizer(xi)
+                        else:
+                            featuresi = self.featurizers[i](xi)
                     yi_l = self.local_classifiers[i](featuresi)
                     loss1 = F.cross_entropy(yi_l, targetsi)
                     loss1.backward()

@@ -1,8 +1,9 @@
 import argparse
 
 import random
-from random import randint
+#from random import randint
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import torch
 from torch import nn
@@ -10,12 +11,34 @@ from torch.nn import functional as F
 from math import pi
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms
-from process import load_all_files
 
 import copy
 import modeloperations as mo
 import time
 import os
+import re
+
+def load_all_files(rdir):
+    names = [name for name in os.listdir(rdir)]
+
+    res_dict = {}
+    name_pattern = re.compile("FL_Dataset_Printer([0-9]+)_Speed([0-9]+).csv")
+    for name in names:
+        s = name_pattern.search(name)
+        #print('matched')
+        if s:
+            pn = int(s.group(1))
+            if not pn in res_dict.keys():
+                res_dict[pn] = {}
+            speed = int(s.group(2))
+            res_dict[pn][speed] = {}
+            res_dict[pn][speed]['name'] = name
+   
+    for printer in res_dict.keys():
+        for speed in res_dict[printer].keys():
+            filei=pd.read_csv(os.path.join(rdir, res_dict[printer][speed]['name']))
+            res_dict[printer][speed]['data'] = filei.to_numpy()
+    return res_dict
 
 # rescale the x-axis for data
 scale = 50
@@ -167,7 +190,6 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
     learning_rate = 3e-3
     wd = 3e-4
     centers = torch.zeros((n_task, feature_dim)).to(device)
-    # centeredlf = copy.deepcopy(lf)
     factor2 = 0.01
     for epoch in range(epochs):
         factor2 *= 1.03
@@ -190,15 +212,14 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
                         clientdecoder[i].parameters()), lr=learning_rate, weight_decay=wd)
                 optimizer_l = torch.optim.Adam(list(decoders[i].parameters()) + list(encoders[i].parameters()),
                                                lr=learning_rate, weight_decay=wd)
-
             else:
                 optimizer = torch.optim.Adam(
                     list(encoders[i].parameters()) + list(
                         clientdecoder[i].parameters()), lr=learning_rate, weight_decay=wd)
                 optimizer_l = torch.optim.Adam(decoders[i].parameters(), lr=learning_rate, weight_decay=wd)
             for j in range(inner_epoch):
+                #local_update
                 optimizer.zero_grad()
-                # Create context and target points and apply neural process
                 x, y = data
                 if args['fed'] in {'Ditto', 'indiv'}:
                     feature_x = clientencoder[i](x)
@@ -226,8 +247,8 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
                 steps += 1
                 closs = torch.zeros(1)
 
+                #local_update_regularized
                 optimizer_l.zero_grad()
-                # Create context and target points and apply neural process
                 x, y = data
                 if args['fed'] in {'Ditto', 'indiv'}:
                     feature_x = encoders[i](x)
@@ -239,10 +260,8 @@ def train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature
                 loss.backward()
                 optimizer_l.step()
                 if not args['fed'] == 'indiv':
-                    if args['fed'] == 'SDA':
-                        beta = 1
-                    else:
-                        beta = 0.9  # 0.001
+                    beta = 0.9
+                    
                     coeffs = [beta, 1 - beta]
                     decoders[i].load_state_dict(mo.scalar_mul(coeffs, [decoder, decoders[i]]).state_dict())
                     if args['fed'] == 'Ditto':
@@ -284,6 +303,7 @@ def test_loss(dataset, encoder, encoders, decoder, decoders, n_task, device, arg
 
             epoch_loss += loss.item() * len(x)
             epoch_length += len(x)
+    epoch_loss *= scale
     if test == 1:
         print(" Avg test loss: {}, ".format(epoch_loss / epoch_length))
     else:
@@ -332,14 +352,12 @@ def one_experinemt(output_dir, args):
         epochs = 20
 
     tl = train(dataset, encoder, encoders, decoder, decoders, epochs, n_task, feature_dim, device, args)
-    # tl = 0
     x_target = torch.Tensor(np.linspace(0.3, 2.2, 50)).to(device)
     x_target = x_target.unsqueeze(1).unsqueeze(0)
     if args['space'] == 'kernel':
         x_target = x_target[0]
 
     fig, axs = plt.subplots(1, 1)
-    idxlist = [0, 1, 2, 3, 4, 5]
 
     for index in range(n_task):
         with torch.no_grad():
