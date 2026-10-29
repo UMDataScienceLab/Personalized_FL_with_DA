@@ -1,6 +1,8 @@
 # pflda
 The numerical experiment code of the paper Personalized Federated Learning via Domain Adaptation with an Application to Distributed 3D Printing.
 
+We propose PDA, a personalized federated learning approach built on domain adaptation, in which clients borrow strength from each other while each keeps a model tailored to its own data.
+
 ## 1. Sine regression 
 sine_regression folder contains all the code needed for reproducing results in section 4.1
 
@@ -18,3 +20,20 @@ case_study folder contains all the code needed for reproducing results in sectio
 
 ## 3. 3D printing
 printer_dataset folder contains all the code needed for reproducing results in section 4.3
+
+## Citation
+
+[Paper](https://doi.org/10.1080/00401706.2022.2157882) (Technometrics, 2023). If you use this code, please cite:
+
+```bibtex
+@article{shi2023personalized,
+  title={Personalized Federated Learning via Domain Adaptation with an Application to Distributed {3D} Printing},
+  author={Shi, Naichen and Al Kontar, Raed},
+  journal={Technometrics},
+  volume={65},
+  number={3},
+  pages={328--339},
+  year={2023},
+  doi={10.1080/00401706.2022.2157882}
+}
+```
